@@ -1,0 +1,66 @@
+[project]
+name = "ellipse-rcnn"
+version = "0.2.0"
+description = "An implementation of the Ellipse R-CNN object detection model in PyTorch, based on 'Ellipse R-CNN: Learning to Infer Elliptical Object from Clustering and Occlusion' by Dong et al."
+authors = [
+    { name = "Wouter Doppenberg", email = "wouterdoppenberg@gmail.com" }
+]
+license = { text = "MIT" }
+requires-python = "==3.12.*"
+dependencies = [
+    "torch>=2.5.1",
+    "torchvision>=0.20.1",
+]
+
+keywords = ["ellipse", "rcnn", "deep learning", "computer vision", "PyTorch"]
+homepage = "https://github.com/wdoppenberg/ellipse-rcnn"
+repository = "https://github.com/wdoppenberg/ellipse-rcnn.git"
+documentation = "https://github.com/wdoppenberg/ellipse-rcnn"
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "pre-commit>=4.0.1",
+    "pyqt6>=6.8.0",
+    "pytest>=8.3.4",
+    "ruff>=0.8.4",
+]
+
+[project.scripts]
+
+[project.optional-dependencies]
+hf = [
+    "huggingface-hub>=0.27.1",
+    "safetensors>=0.5.2",
+]
+train = [
+    "h5py>=3.12.1",
+    "matplotlib>=3.10.0",
+    "pandas>=2.2.3",
+    "pytorch-lightning>=2.5.0.post0",
+    "tensorboard>=2.18.0",
+    "torch-tb-profiler>=0.4.3",
+    "torchmetrics>=1.6.1",
+    "typer>=0.15.1",
+    "seaborn>=0.13.2",
+]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"test/**" = ["ARG", "S", "D", "ANN"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true

@@ -27,7 +27,7 @@ class IndustryEllipseDataset(Dataset):
     Dataset class for industrial ellipse data.
     """
 
-    def __init__(self, image_files: list, annotation_files: list, transform=None):
+    def __init__(self, image_files: list, annotation_files: list, transform=None,  resize=(640, 640)):
         """
         Initialize the dataset.
 
@@ -39,6 +39,7 @@ class IndustryEllipseDataset(Dataset):
         self.image_files = image_files
         self.annotation_files = annotation_files
         self.transform = transform
+        self.resize = resize
 
     def __getitem__(self, idx):
         """
@@ -58,7 +59,11 @@ class IndustryEllipseDataset(Dataset):
         annotation_path = self.annotation_files[idx]
 
         # Load image
+        print(f"Loading image: {image_path}")
         image = Image.open(image_path).convert("RGB")
+        image = image.resize(self.resize)
+        transform = transforms.ToTensor()
+        image = transform(image)    
         if self.transform:
             image = self.transform(image)
 
@@ -103,7 +108,6 @@ class IndustryEllipseDataset(Dataset):
         area = area[valid_indices]
         ellipses = ellipses[valid_indices]
 
-        num_objs = len(boxes)
         labels = torch.ones((num_objs,), dtype=torch.int64)  # Assuming all objects belong to class 1
         image_id = torch.tensor([idx], dtype=torch.int64)
         iscrowd = torch.zeros((num_objs,), dtype=torch.int64)
@@ -168,7 +172,7 @@ class IndustryEllipseDataModule(pl.LightningDataModule):
         
         # Ensure alignment between images and annotations
         assert len(image_files) == len(annotation_files), "Mismatch between images and annotations."
-        print(image_files)
+        
         # Split into training, validation, and test sets
         dataset_size = len(image_files)
         train_size = int(self.train_split * dataset_size)

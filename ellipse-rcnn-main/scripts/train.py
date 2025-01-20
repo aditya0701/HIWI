@@ -8,7 +8,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 from ellipse_rcnn.pl import EllipseRCNNModule
 from ellipse_rcnn.data.craters import CraterEllipseDataModule
-from ellipse_rcnn.data.industry import IndustryEllipseDataset
+from ellipse_rcnn.data.industry import IndustryEllipseDataModule
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
 
@@ -37,21 +37,17 @@ def train_model(
 ) -> None:
     datamodule: LightningDataModule
     match dataset:
-        # case "FDDB":
-        #     datamodule = FDDBLightningDataModule(
-        #         "data/FDDB", num_workers=num_workers, batch_size=batch_size
-        #     )
+        case "Industry":
+            datamodule = IndustryEllipseDataModule(
+                r"Z:\Aditya Rawat\HIWI\EllipDet-master\Industrial\images",
+                r"Z:\Aditya Rawat\HIWI\EllipDet-master\Industrial\gt", 
+                num_workers=num_workers, 
+                batch_size=batch_size
+            )
 
         case "Craters":
             datamodule = CraterEllipseDataModule(
-                "data/Craters/dataset_crater_detection_80k.h5",
-                batch_size=batch_size,
-                num_workers=num_workers,
-            )
-        
-        case "Industry":
-            datamodule = IndustryEllipseDataset(
-                "D:\Exercises\HIWI\EllipDet-master\Industrial",
+                r"data/Craters/dataset_crater_detection_80k.h5",
                 batch_size=batch_size,
                 num_workers=num_workers,
             )

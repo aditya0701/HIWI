@@ -27,22 +27,18 @@ class IndustryEllipseDataset(Dataset):
     Dataset class for industrial ellipse data.
     """
 
-    def __init__(self, images_dir: str, annotations_dir: str, transform=None):
+    def __init__(self, image_files: list, annotation_files: list, transform=None):
         """
         Initialize the dataset.
 
         Args:
-            images_dir (str): Path to the folder containing .jpg image files.
-            annotations_dir (str): Path to the folder containing .txt annotation files.
+            image_files (list): List of image file paths.
+            annotation_files (list): List of annotation file paths.
             transform: Optional transform to be applied to the images.
         """
-        self.images_dir = images_dir
-        self.annotations_dir = annotations_dir
+        self.image_files = image_files
+        self.annotation_files = annotation_files
         self.transform = transform
-
-        # Get sorted lists of file names to ensure alignment between images and annotations
-        self.image_files = sorted(os.listdir(images_dir))
-        self.annotation_files = sorted(os.listdir(annotations_dir))
 
     def __getitem__(self, idx):
         """
@@ -56,8 +52,10 @@ class IndustryEllipseDataset(Dataset):
                 - image is a transformed PIL image.
                 - target is a dictionary containing ellipse and bounding box information.
         """
-        image_path = os.path.join(self.images_dir, self.image_files[idx])
-        annotation_path = os.path.join(self.annotations_dir, self.annotation_files[idx])
+        # self.image_path = self.image_files[idx]
+        # self.annotation_path = self.annotation_files[idx]
+        image_path = self.image_files[idx]
+        annotation_path = self.annotation_files[idx]
 
         # Load image
         image = Image.open(image_path).convert("RGB")
@@ -67,23 +65,34 @@ class IndustryEllipseDataset(Dataset):
         # Load annotations
         with open(annotation_path, "r") as f:
             lines = f.readlines()
-            num_objs = int(lines[0].strip())  # The first line contains the number of objects
 
-            ellipses = []
+            # First line specifies the number of ellipses
+            num_objs = int(lines[0].strip())
+            if len(lines) - 1 != num_objs:
+                raise ValueError("Mismatch between number of objects and data lines.")
+
+            # Parse ellipses from remaining lines
+            cx_list, cy_list, a_list, b_list, theta_list = [], [], [], [], []
             for line in lines[1:]:
-                cx, cy, a, b, theta = map(float, line.strip().split())
-                
-                # Create ellipse matrices (if needed for further processing)
-                ellipse_matrix = torch.tensor([[a**2, 0, 0],
-                                                [0, b**2, 0],
-                                                [0,  0, -1]])
-                ellipses.append((cx, cy, a, b, theta))
+                try:
+                    cx, cy, a, b, theta = map(float, line.strip().split())
+                    if a <= 0 or b <= 0:
+                        raise ValueError(f"Invalid ellipse axes: a={a}, b={b}")
+                    a_list.append(a)
+                    b_list.append(b)
+                    cx_list.append(cx)
+                    cy_list.append(cy)
+                    theta_list.append(theta)
+                except ValueError as e:
+                    raise ValueError(f"Error processing line: {line.strip()}") from e
+            # Create stacked tensor 
+            a = torch.tensor(a_list)
+            b = torch.tensor(b_list)
+            cx = torch.tensor(cx_list)
+            cy = torch.tensor(cy_list)
+            theta = torch.tensor(theta_list)
 
-            ellipses = torch.tensor(ellipses)  # Convert to tensor
-            a, b = ellipses[:, 2], ellipses[:, 3]
-            cx, cy = ellipses[:, 0], ellipses[:, 1]
-            theta = ellipses[:, 4]
-
+            ellipses = torch.stack([a, b, cx, cy, theta], dim=-1).reshape(-1, 5)
         # Compute bounding boxes using ellipse parameters
         boxes = bbox_ellipse(ellipses).reshape(-1, 4)
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
@@ -148,8 +157,9 @@ class IndustryEllipseDataModule(pl.LightningDataModule):
         image_files = sorted([
             os.path.join(self.images_dir, f)
             for f in os.listdir(self.images_dir)
-            if f.endswith(".jpg")
+            if f.endswith(".jpg") or f.endswith(".bmp")  # Include both .jpg and .bmp files
         ])
+
         annotation_files = sorted([
             os.path.join(self.annotations_dir, f)
             for f in os.listdir(self.annotations_dir)
@@ -158,12 +168,11 @@ class IndustryEllipseDataModule(pl.LightningDataModule):
         
         # Ensure alignment between images and annotations
         assert len(image_files) == len(annotation_files), "Mismatch between images and annotations."
-
+        print(image_files)
         # Split into training, validation, and test sets
         dataset_size = len(image_files)
         train_size = int(self.train_split * dataset_size)
         val_size = int(self.val_split * dataset_size)
-        test_size = dataset_size - train_size - val_size
 
         # Shuffle and split
         random.seed(self.seed)

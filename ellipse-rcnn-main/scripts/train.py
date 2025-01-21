@@ -39,8 +39,8 @@ def train_model(
     match dataset:
         case "Industry":
             datamodule = IndustryEllipseDataModule(
-                r"Z:\Aditya Rawat\HIWI\EllipDet-master\Industrial\images",
-                r"Z:\Aditya Rawat\HIWI\EllipDet-master\Industrial\gt", 
+                r"D:\Exercises\HIWI\EllipDet-master\Industrial\images",
+                r"D:\Exercises\HIWI\EllipDet-master\Industrial\gt", 
                 num_workers=num_workers, 
                 batch_size=batch_size
             )
@@ -59,7 +59,8 @@ def train_model(
         print(
             "Warning: Running with multiple iterations with a fixed learning rate or weight decay."
         )
-
+    
+    print(f"num-workers: {num_workers}, batch-size: {batch_size}")
     for iteration in range(iterations):
         sampled_lr = random.uniform(lr_min, lr_max)
         sampled_weight_decay = random.uniform(weight_decay_min, weight_decay_max)

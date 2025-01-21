@@ -62,6 +62,7 @@ class IndustryEllipseDataset(Dataset):
         print(f"Loading image: {image_path}")
         image = Image.open(image_path).convert("RGB")
         image = image.resize(self.resize)
+        print(f"image size: {image.size}")
         transform = transforms.ToTensor()
         image = transform(image)    
         if self.transform:
@@ -121,7 +122,7 @@ class IndustryEllipseDataset(Dataset):
             "iscrowd": iscrowd,
             "ellipse_params": ellipses,
         }
-
+        print("Sample targets:", target)
         return image, target
 
     def __len__(self) -> int:

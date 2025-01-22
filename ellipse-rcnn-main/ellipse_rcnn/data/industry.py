@@ -6,8 +6,9 @@ from typing import List, Tuple, Optional
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
-from PIL import Image
+import cv2
 import pytorch_lightning as pl
+import math
 
 from ellipse_rcnn.core.types import ImageTargetTuple, TargetDict
 from ellipse_rcnn.core.ops import (
@@ -19,7 +20,6 @@ from ellipse_rcnn.core.ops import (
 from torch.utils.data import Dataset
 import os
 import torch
-from PIL import Image
 
 
 class IndustryEllipseDataset(Dataset):
@@ -53,27 +53,31 @@ class IndustryEllipseDataset(Dataset):
                 - image is a transformed PIL image.
                 - target is a dictionary containing ellipse and bounding box information.
         """
-        # self.image_path = self.image_files[idx]
-        # self.annotation_path = self.annotation_files[idx]
         image_path = self.image_files[idx]
         annotation_path = self.annotation_files[idx]
 
         # Load image
         print(f"Loading image: {image_path}")
-        image = Image.open(image_path).convert("RGB")
-        image = image.resize(self.resize)
-        print(f"image size: {image.size}")
+        image = cv2.imread(image_path)
+        original_height, original_width = image.shape[:2]
+        target_size = self.resize
+        
+        print(f"original size: {original_width} x {original_height}")
+        image = cv2.resize(image, (target_size[0], target_size[1]))
+        print(f"target size: {target_size}")
         transform = transforms.ToTensor()
-        image = transform(image)    
+        image = transform(image)
+
         if self.transform:
             image = self.transform(image)
 
-        # Load annotations
         with open(annotation_path, "r") as f:
             lines = f.readlines()
 
             # First line specifies the number of ellipses
             num_objs = int(lines[0].strip())
+            scale_x = target_size[0] / original_width
+            scale_y = target_size[1] / original_height
             if len(lines) - 1 != num_objs:
                 raise ValueError("Mismatch between number of objects and data lines.")
 
@@ -81,14 +85,26 @@ class IndustryEllipseDataset(Dataset):
             cx_list, cy_list, a_list, b_list, theta_list = [], [], [], [], []
             for line in lines[1:]:
                 try:
-                    cx, cy, a, b, theta = map(float, line.strip().split())
-                    if a <= 0 or b <= 0:
+                    x_center, y_center, width, height, angle = map(float, line.strip().split())
+                    if width <= 0 or height <= 0:
                         raise ValueError(f"Invalid ellipse axes: a={a}, b={b}")
-                    a_list.append(a)
-                    b_list.append(b)
-                    cx_list.append(cx)
-                    cy_list.append(cy)
-                    theta_list.append(theta)
+                    x_center = int(x_center * scale_x)
+                    y_center = int(y_center * scale_y)
+                    width = int(width * scale_x)
+                    height = int(height * scale_y)
+                    
+                    original_angle_rad = math.radians(angle)
+                    tan_2theta = math.tan(2 * original_angle_rad)
+                    scale_ratio = scale_y / scale_x
+                    tan_2theta_prime = (tan_2theta * scale_ratio) / (1 + tan_2theta**2 * (scale_ratio**2 - 1))
+                    new_angle_rad = 0.5 * math.atan(tan_2theta_prime)
+                    # new_angle = math.degrees(new_angle_rad)
+
+                    a_list.append(width)
+                    b_list.append(height)
+                    cx_list.append(x_center)
+                    cy_list.append(y_center)
+                    theta_list.append(new_angle_rad)
                 except ValueError as e:
                     raise ValueError(f"Error processing line: {line.strip()}") from e
             # Create stacked tensor 

@@ -88,7 +88,7 @@ def train_model(
         )
         trainer = pl.Trainer(
             accelerator=accelerator,
-            precision="bf16-mixed",
+            precision="32-true",
             max_epochs=40,
             enable_checkpointing=True,
             callbacks=[checkpoint_callback, early_stopping_callback],

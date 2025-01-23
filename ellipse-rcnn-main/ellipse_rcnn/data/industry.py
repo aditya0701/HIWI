@@ -20,6 +20,7 @@ from ellipse_rcnn.core.ops import (
 from torch.utils.data import Dataset
 import os
 import torch
+from ellipse_rcnn.data.utils import collate_fn
 
 
 class IndustryEllipseDataset(Dataset):
@@ -41,7 +42,7 @@ class IndustryEllipseDataset(Dataset):
         self.transform = transform
         self.resize = resize
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> ImageTargetTuple:
         """
         Retrieve an image and its corresponding annotations.
 
@@ -130,14 +131,14 @@ class IndustryEllipseDataset(Dataset):
         iscrowd = torch.zeros((num_objs,), dtype=torch.int64)
 
         # Create the target dictionary
-        target = {
-            "boxes": boxes,
-            "labels": labels,
-            "image_id": image_id,
-            "area": area,
-            "iscrowd": iscrowd,
-            "ellipse_params": ellipses,
-        }
+        target = TargetDict(
+            boxes=boxes,
+            labels=labels,
+            image_id=image_id,
+            area=area,
+            iscrowd=iscrowd,
+            ellipse_params=ellipses,
+        )
         print("Sample targets:", target)
         return image, target
 
@@ -221,10 +222,20 @@ class IndustryEllipseDataModule(pl.LightningDataModule):
         )
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, 
+                          batch_size=self.batch_size, 
+                          shuffle=True, 
+                          collate_fn=collate_fn, 
+                          num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.val_dataset, 
+                          batch_size=self.batch_size, 
+                          collate_fn=collate_fn,
+                          num_workers=self.num_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.test_dataset, 
+                          batch_size=self.batch_size, 
+                          collate_fn=collate_fn,
+                          num_workers=self.num_workers)

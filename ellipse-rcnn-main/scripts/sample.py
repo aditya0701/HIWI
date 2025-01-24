@@ -2,9 +2,10 @@ import typer
 from matplotlib import pyplot as plt
 import seaborn as sns
 import random
+import os
 
 from ellipse_rcnn.data.craters import CraterEllipseDataset
-from ellipse_rcnn.data.fddb import FDDB
+from ellipse_rcnn.data.industry import IndustryEllipseDataset
 from ellipse_rcnn.pl import EllipseRCNNModule
 from ellipse_rcnn.utils.viz import plot_ellipses, plot_bboxes
 
@@ -14,24 +15,36 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 @app.command()
 def predict(
     model_path: str = typer.Argument(..., help="Path to the model checkpoint."),
-    data_path: str = typer.Argument(..., help="Path to the dataset directory."),
+    image_dir: str = typer.Argument(..., help="Path to the dataset directory."),
+    annotations_dir: str = typer.Argument(..., help="Path to the dataset directory."),
     min_score: float = typer.Option(
         0.6, help="Minimum score threshold for predictions."
     ),
-    dataset: str = "FDDB",
+    dataset: str = "Industry",
     plot_centers: bool = typer.Option(False, help="Whether to plot ellipse centers."),
 ) -> None:
     """
     Load a pretrained model, predict ellipses on the given dataset, and visualize results.
     """
+    image_files = sorted([
+            os.path.join(image_dir, f)
+            for f in os.listdir(image_dir)
+            if f.endswith(".jpg") or f.endswith(".bmp")  # Include both .jpg and .bmp files
+        ])
+    annotation_files = sorted([
+            os.path.join(annotations_dir, f)
+            for f in os.listdir(annotations_dir)
+            if f.endswith(".txt")
+        ])
     match dataset:
-        case "FDDB":
-            ds = FDDB(
-                data_path,
+        case "Industry":
+            ds = IndustryEllipseDataset(
+                image_files,
+                annotation_files,
             )
 
-        case "Craters":
-            ds = CraterEllipseDataset(data_path, group="test")
+        # case "Craters":
+        #     ds = CraterEllipseDataset(data_path, group="test")
 
         case _:
             raise ValueError(f"Dataset {dataset} not found.")

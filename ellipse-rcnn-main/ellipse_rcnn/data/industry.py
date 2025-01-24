@@ -54,6 +54,7 @@ class IndustryEllipseDataset(Dataset):
                 - image is a transformed PIL image.
                 - target is a dictionary containing ellipse and bounding box information.
         """
+        print(f"Processing sample {idx}")
         image_path = self.image_files[idx]
         annotation_path = self.annotation_files[idx]
 
@@ -99,13 +100,13 @@ class IndustryEllipseDataset(Dataset):
                     scale_ratio = scale_y / scale_x
                     tan_2theta_prime = (tan_2theta * scale_ratio) / (1 + tan_2theta**2 * (scale_ratio**2 - 1))
                     new_angle_rad = 0.5 * math.atan(tan_2theta_prime)
-                    # new_angle = math.degrees(new_angle_rad)
+                    new_angle = math.degrees(new_angle_rad)
 
                     a_list.append(width)
                     b_list.append(height)
                     cx_list.append(x_center)
                     cy_list.append(y_center)
-                    theta_list.append(new_angle_rad)
+                    theta_list.append(new_angle)
                 except ValueError as e:
                     raise ValueError(f"Error processing line: {line.strip()}") from e
             # Create stacked tensor 
@@ -139,7 +140,7 @@ class IndustryEllipseDataset(Dataset):
             iscrowd=iscrowd,
             ellipse_params=ellipses,
         )
-        print("Sample targets:", target)
+        # print("Sample targets:", target)
         return image, target
 
     def __len__(self) -> int:

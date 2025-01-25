@@ -66,7 +66,7 @@ class IndustryEllipseDataset(Dataset):
         
         print(f"original size: {original_width} x {original_height}")
         image = cv2.resize(image, (target_size[0], target_size[1]))
-        print(f"target size: {target_size}")
+        print(f"target size_1: {image.shape[1]} x {image.shape[0]}")
         transform = transforms.ToTensor()
         image = transform(image)
 
@@ -106,7 +106,7 @@ class IndustryEllipseDataset(Dataset):
                     b_list.append(height)
                     cx_list.append(x_center)
                     cy_list.append(y_center)
-                    theta_list.append(new_angle)
+                    theta_list.append(new_angle_rad)
                 except ValueError as e:
                     raise ValueError(f"Error processing line: {line.strip()}") from e
             # Create stacked tensor 

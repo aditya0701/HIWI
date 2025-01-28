@@ -73,19 +73,22 @@ class IndustryEllipseDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
+        scale_x = target_size[0] / original_width
+        scale_y = target_size[1] / original_height
+
         with open(annotation_path, "r") as f:
-            lines = f.readlines()
+            # lines = f.readlines()
 
             # First line specifies the number of ellipses
-            num_objs = int(lines[0].strip())
-            scale_x = target_size[0] / original_width
-            scale_y = target_size[1] / original_height
-            if len(lines) - 1 != num_objs:
-                raise ValueError("Mismatch between number of objects and data lines.")
+            num_objs = int(f.readline().strip())
+            
+            # if len(lines) - 1 != num_objs:
+            #     raise ValueError("Mismatch between number of objects and data lines.")
 
             # Parse ellipses from remaining lines
             cx_list, cy_list, a_list, b_list, theta_list = [], [], [], [], []
-            for line in lines[1:]:
+            for _ in range(num_objs):
+                line = f.readline().strip()
                 try:
                     x_center, y_center, width, height, angle = map(float, line.strip().split())
                     if width <= 0 or height <= 0:

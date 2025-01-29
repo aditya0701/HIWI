@@ -61,6 +61,7 @@ class IndustryEllipseDataset(Dataset):
         # Load image
         print(f"Loading image: {image_path}")
         image = cv2.imread(image_path)
+        image = (cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         original_height, original_width = image.shape[:2]
         target_size = self.resize
         

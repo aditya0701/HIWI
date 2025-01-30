@@ -23,7 +23,7 @@ import torch
 from ellipse_rcnn.data.utils import collate_fn
 
 
-class IndustryEllipseDataset(Dataset):
+class PrasadEllipseDataset(Dataset):
     """
     Dataset class for industrial ellipse data.
     """
@@ -65,9 +65,9 @@ class IndustryEllipseDataset(Dataset):
         original_height, original_width = image.shape[:2]
         target_size = self.resize
         
-        print(f"original size: {original_width} x {original_height}")
+        # print(f"original size: {original_width} x {original_height}")
         image = cv2.resize(image, (target_size[0], target_size[1]))
-        print(f"target size_1: {image.shape[1]} x {image.shape[0]}")
+        # print(f"target size_1: {image.shape[1]} x {image.shape[0]}")
         transform = transforms.ToTensor()
         image = transform(image)
 
@@ -90,29 +90,35 @@ class IndustryEllipseDataset(Dataset):
             cx_list, cy_list, a_list, b_list, theta_list = [], [], [], [], []
             for _ in range(num_objs):
                 line = f.readline().strip()
+                if not line:  # Skip empty lines
+                    continue    
+                # print("line:", line)
                 try:
+                    print(f'annotation_path: {annotation_path}')    
                     x_center, y_center, width, height, angle = map(float, line.strip().split())
-                    if width <= 0 or height <= 0:
-                        raise ValueError(f"Invalid ellipse axes: a={a}, b={b}")
+                    # print(f"x_center: {x_center}, y_center: {y_center}, width: {width}, height: {height}, angle: {angle}") 
+                    if width < 0 or height < 0:
+                        raise ValueError(f"Invalid ellipse axes: a={width}, b={height}")
                     x_center = int(x_center * scale_x)
                     y_center = int(y_center * scale_y)
                     width = int(width * scale_x)
                     height = int(height * scale_y)
                     
-                    original_angle_rad = math.radians(angle)
-                    tan_2theta = math.tan(2 * original_angle_rad)
+                    # original_angle_rad = math.radians(angle)
+                    tan_2theta = math.tan(2 * angle)
                     scale_ratio = scale_y / scale_x
                     tan_2theta_prime = (tan_2theta * scale_ratio) / (1 + tan_2theta**2 * (scale_ratio**2 - 1))
-                    new_angle_rad = 0.5 * math.atan(tan_2theta_prime)
-                    new_angle = math.degrees(new_angle_rad)
+                    angle = 0.5 * math.atan(tan_2theta_prime)
+                    # new_angle = math.degrees(new_angle_rad)
 
                     a_list.append(width)
                     b_list.append(height)
                     cx_list.append(x_center)
                     cy_list.append(y_center)
-                    theta_list.append(new_angle_rad)
+                    theta_list.append(angle)
                 except ValueError as e:
-                    raise ValueError(f"Error processing line: {line.strip()}") from e
+                    raise ValueError(f"Error processing line: {e},target file: {annotation_path}") from e
+                # 'D:\Exercises\HIWI\EllipDet-master\Prasad\Prasad\images\120_0037.jpg'
             # Create stacked tensor 
             a = torch.tensor(a_list)
             b = torch.tensor(b_list)
@@ -155,7 +161,7 @@ class IndustryEllipseDataset(Dataset):
 
 
 
-class IndustryEllipseDataModule(pl.LightningDataModule):
+class PrasadEllipseDataModule(pl.LightningDataModule):
     def __init__(
         self,
         images_dir: str,
@@ -210,17 +216,17 @@ class IndustryEllipseDataModule(pl.LightningDataModule):
         val_indices = indices[train_size:train_size + val_size]
         test_indices = indices[train_size + val_size:]
 
-        self.train_dataset = IndustryEllipseDataset(
+        self.train_dataset = PrasadEllipseDataset(
             [image_files[i] for i in train_indices],
             [annotation_files[i] for i in train_indices],
             transform=self.transform
         )
-        self.val_dataset = IndustryEllipseDataset(
+        self.val_dataset = PrasadEllipseDataset(
             [image_files[i] for i in val_indices],
             [annotation_files[i] for i in val_indices],
             transform=self.transform
         )
-        self.test_dataset = IndustryEllipseDataset(
+        self.test_dataset = PrasadEllipseDataset(
             [image_files[i] for i in test_indices],
             [annotation_files[i] for i in test_indices],
             transform=self.transform

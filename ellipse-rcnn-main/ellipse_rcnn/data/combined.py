@@ -180,8 +180,11 @@ class CombinedEllipseDataModule(LightningDataModule):
 
         # Combine the datasets
         self.train_dataset = ConcatDataset(self.train_datasets) if self.train_datasets else None
+        print(f"train: {self.train_dataset}")
         self.val_dataset = ConcatDataset(self.val_datasets) if self.val_datasets else None
+        print(f'val: {self.val_dataset}')
         self.test_dataset = ConcatDataset(self.test_datasets) if self.test_datasets else None
+        print(f'test: {self.test_dataset}')
 
     def train_dataloader(self):
         return DataLoader(

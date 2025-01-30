@@ -23,7 +23,7 @@ import torch
 from ellipse_rcnn.data.utils import collate_fn
 
 
-class IndustryEllipseDataset(Dataset):
+class occ24EllipseDataset(Dataset):
     """
     Dataset class for industrial ellipse data.
     """
@@ -78,22 +78,19 @@ class IndustryEllipseDataset(Dataset):
         scale_y = target_size[1] / original_height
 
         with open(annotation_path, "r") as f:
-            # lines = f.readlines()
-
-            # First line specifies the number of ellipses
             num_objs = int(f.readline().strip())
             
-            # if len(lines) - 1 != num_objs:
-            #     raise ValueError("Mismatch between number of objects and data lines.")
-
-            # Parse ellipses from remaining lines
             cx_list, cy_list, a_list, b_list, theta_list = [], [], [], [], []
             for _ in range(num_objs):
                 line = f.readline().strip()
+                if not line:  
+                    continue    
+                
                 try:
                     x_center, y_center, width, height, angle = map(float, line.strip().split())
+                    # print(f"Ellipse parameters: x={x_center}, y={y_center}, a={width}, b={height}, angle={angle}")
                     if width <= 0 or height <= 0:
-                        raise ValueError(f"Invalid ellipse axes: a={a}, b={b}")
+                        raise ValueError(f"Invalid ellipse axes: a={width}, b={height}")
                     x_center = int(x_center * scale_x)
                     y_center = int(y_center * scale_y)
                     width = int(width * scale_x)
@@ -103,14 +100,14 @@ class IndustryEllipseDataset(Dataset):
                     tan_2theta = math.tan(2 * original_angle_rad)
                     scale_ratio = scale_y / scale_x
                     tan_2theta_prime = (tan_2theta * scale_ratio) / (1 + tan_2theta**2 * (scale_ratio**2 - 1))
-                    new_angle_rad = 0.5 * math.atan(tan_2theta_prime)
-                    new_angle = math.degrees(new_angle_rad)
+                    angle = 0.5 * math.atan(tan_2theta_prime)
+                    # new_angle = math.degrees(new_angle_rad)
 
                     a_list.append(width)
                     b_list.append(height)
                     cx_list.append(x_center)
                     cy_list.append(y_center)
-                    theta_list.append(new_angle_rad)
+                    theta_list.append(angle)
                 except ValueError as e:
                     raise ValueError(f"Error processing line: {line.strip()}") from e
             # Create stacked tensor 
@@ -155,7 +152,7 @@ class IndustryEllipseDataset(Dataset):
 
 
 
-class IndustryEllipseDataModule(pl.LightningDataModule):
+class occ24EllipseDataModule(pl.LightningDataModule):
     def __init__(
         self,
         images_dir: str,
@@ -210,17 +207,17 @@ class IndustryEllipseDataModule(pl.LightningDataModule):
         val_indices = indices[train_size:train_size + val_size]
         test_indices = indices[train_size + val_size:]
 
-        self.train_dataset = IndustryEllipseDataset(
+        self.train_dataset = occ24EllipseDataset(
             [image_files[i] for i in train_indices],
             [annotation_files[i] for i in train_indices],
             transform=self.transform
         )
-        self.val_dataset = IndustryEllipseDataset(
+        self.val_dataset = occ24EllipseDataset(
             [image_files[i] for i in val_indices],
             [annotation_files[i] for i in val_indices],
             transform=self.transform
         )
-        self.test_dataset = IndustryEllipseDataset(
+        self.test_dataset = occ24EllipseDataset(
             [image_files[i] for i in test_indices],
             [annotation_files[i] for i in test_indices],
             transform=self.transform

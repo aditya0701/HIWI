@@ -267,7 +267,7 @@ def train_model(
             monitor="val/loss_total",
             dirpath="checkpoints",
             filename=r"loss={val/loss_total:.5f}-e={epoch:02d}",
-            auto_insert_metric_name=False,
+            auto_insert_metric_name=True,
             save_top_k=1,
             mode="min",
         )

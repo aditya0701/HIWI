@@ -131,6 +131,7 @@ dmypy.json
 
 # Data folders
 /data/
+/D:/Exercises/HIWI/testdata
 /data*
 lightning_logs/
 tb_logs/

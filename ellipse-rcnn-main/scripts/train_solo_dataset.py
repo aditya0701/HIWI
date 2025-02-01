@@ -23,7 +23,7 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 
 @app.command()
 def train_model(
-    iterations: int = typer.Option(1, help="Number of iterations to train the model."),
+    iterations: int = typer.Option(3, help="Number of iterations to train the model."),
     lr: float | None = typer.Option(
         None, help="Learning rate value. Disables lr sampling."
     ),
@@ -55,8 +55,8 @@ def train_model(
 
         case "Prasad":
             datamodule = PrasadEllipseDataModule(
-                r"D:\Exercises\HIWI\EllipDet-master\Prasad\Prasad\images",
-                r"D:\Exercises\HIWI\EllipDet-master\Prasad\Prasad\gt",
+                r"D:\Exercises\HIWI\EllipDet-master\Final_dataset\images",
+                r"D:\Exercises\HIWI\EllipDet-master\Final_dataset\gt",
                 batch_size=batch_size,
                 num_workers=num_workers,
             )
@@ -118,8 +118,8 @@ def train_model(
 
         case "occ4":
             datamodule = occ4EllipseDataModule(
-            r"D:\Exercises\HIWI\EllipDet-master\Occluded\Occluded\O4\images",
-            r"D:\Exercises\HIWI\EllipDet-master\Occluded\Occluded\O4\gt",
+            r"D:\Exercises\HIWI\EllipDet-master\Final_dataset\images",
+            r"D:\Exercises\HIWI\EllipDet-master\Final_dataset\gt",
             batch_size=batch_size,
             num_workers=num_workers,
             )
@@ -148,8 +148,8 @@ def train_model(
             monitor="val/loss_total",
             dirpath="checkpoints",
             filename=r"loss={val/loss_total:.5f}-e={epoch:02d}",
-            auto_insert_metric_name=False,
-            save_top_k=1,
+            auto_insert_metric_name=True,
+            save_top_k=-1,
             mode="min",
         )
         early_stopping_callback = EarlyStopping(

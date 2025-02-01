@@ -54,20 +54,21 @@ class occ24EllipseDataset(Dataset):
                 - image is a transformed PIL image.
                 - target is a dictionary containing ellipse and bounding box information.
         """
-        print(f"Processing sample {idx}")
+        # print(f"Processing sample {idx}")
         image_path = self.image_files[idx]
         annotation_path = self.annotation_files[idx]
 
         # Load image
-        print(f"Loading image: {image_path}")
+        print(f"Loading image: {image_path}, index: {idx}")
+        print(f'annotation_path: {annotation_path}, index: {idx}')   
         image = cv2.imread(image_path)
         image = (cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         original_height, original_width = image.shape[:2]
         target_size = self.resize
         
-        print(f"original size: {original_width} x {original_height}")
-        image = cv2.resize(image, (target_size[0], target_size[1]))
-        print(f"target size_1: {image.shape[1]} x {image.shape[0]}")
+        # print(f"original size: {original_width} x {original_height}")
+        # image = cv2.resize(image, (target_size[0], target_size[1]))
+        # print(f"target size_1: {image.shape[1]} x {image.shape[0]}")
         transform = transforms.ToTensor()
         image = transform(image)
 
@@ -89,18 +90,18 @@ class occ24EllipseDataset(Dataset):
                 try:
                     x_center, y_center, width, height, angle = map(float, line.strip().split())
                     # print(f"Ellipse parameters: x={x_center}, y={y_center}, a={width}, b={height}, angle={angle}")
-                    if width <= 0 or height <= 0:
-                        raise ValueError(f"Invalid ellipse axes: a={width}, b={height}")
-                    x_center = int(x_center * scale_x)
-                    y_center = int(y_center * scale_y)
-                    width = int(width * scale_x)
-                    height = int(height * scale_y)
+                    # if width <= 0 or height <= 0:
+                    #     raise ValueError(f"Invalid ellipse axes: a={width}, b={height}")
+                    # x_center = int(x_center * scale_x)
+                    # y_center = int(y_center * scale_y)
+                    # width = int(width * scale_x)
+                    # height = int(height * scale_y)
                     
-                    original_angle_rad = math.radians(angle)
-                    tan_2theta = math.tan(2 * original_angle_rad)
-                    scale_ratio = scale_y / scale_x
-                    tan_2theta_prime = (tan_2theta * scale_ratio) / (1 + tan_2theta**2 * (scale_ratio**2 - 1))
-                    angle = 0.5 * math.atan(tan_2theta_prime)
+                    # # original_angle_rad = math.radians(angle)
+                    # tan_2theta = math.tan(2 * angle)
+                    # scale_ratio = scale_y / scale_x
+                    # tan_2theta_prime = (tan_2theta * scale_ratio) / (1 + tan_2theta**2 * (scale_ratio**2 - 1))
+                    # angle = 0.5 * math.atan(tan_2theta_prime)
                     # new_angle = math.degrees(new_angle_rad)
 
                     a_list.append(width)

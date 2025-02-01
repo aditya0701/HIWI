@@ -54,12 +54,13 @@ class PrasadEllipseDataset(Dataset):
                 - image is a transformed PIL image.
                 - target is a dictionary containing ellipse and bounding box information.
         """
-        print(f"Processing sample {idx}")
+        # print(f"Processing sample {idx}")
         image_path = self.image_files[idx]
         annotation_path = self.annotation_files[idx]
 
         # Load image
-        print(f"Loading image: {image_path}")
+        print(f"Loading image: {image_path}, index: {idx}")
+        print(f'annotation_path: {annotation_path}, index: {idx}')   
         image = cv2.imread(image_path)
         image = (cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         original_height, original_width = image.shape[:2]
@@ -94,7 +95,7 @@ class PrasadEllipseDataset(Dataset):
                     continue    
                 # print("line:", line)
                 try:
-                    print(f'annotation_path: {annotation_path}')    
+                     
                     x_center, y_center, width, height, angle = map(float, line.strip().split())
                     # print(f"x_center: {x_center}, y_center: {y_center}, width: {width}, height: {height}, angle: {angle}") 
                     if width < 0 or height < 0:

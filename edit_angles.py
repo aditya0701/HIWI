@@ -86,5 +86,5 @@ def process_angle_files(directory):
                 print(f"Error processing file {filename}: {e}")
 
 # Usage example
-folder_path = r'D:\Exercises\HIWI\EllipDet-master\Prasad\Prasad\gt'  # Change this to your folder path
+folder_path = r'D:\Exercises\HIWI\EllipDet-master\Dataset#1\Dataset#1\gt'  # Change this to your folder path
 process_angle_files(folder_path)

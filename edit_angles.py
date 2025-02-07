@@ -73,7 +73,6 @@ def process_angle_files(directory):
                         print(f"Unexpected format in line: {line.strip()}, file: {filename}")
                         updated_lines.append(line.strip())  
 
-                # Write back the updated lines to the same file, including skipped first line.
                 with open(file_path, 'w') as file:
                     # Write back the first unchanged line (the count)
                     if lines and len(lines) > 0 and lines[0].strip():
@@ -86,5 +85,5 @@ def process_angle_files(directory):
                 print(f"Error processing file {filename}: {e}")
 
 # Usage example
-folder_path = r'D:\Exercises\HIWI\EllipDet-master\Dataset#1\Dataset#1\gt'  # Change this to your folder path
+folder_path = r'D:\Exercises\HIWI\EllipDet-master\Dataset2\Dataset2\gt'  # Change this to your folder path
 process_angle_files(folder_path)

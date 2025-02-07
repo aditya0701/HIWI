@@ -96,7 +96,7 @@ class PrasadEllipseDataset(Dataset):
                 # print("line:", line)
                 try:
                      
-                    x_center, y_center, width, height, angle = map(float, line.strip().split())
+                    x_center, y_center,width,height, angle = map(float, line.strip().split())
                     # print(f"x_center: {x_center}, y_center: {y_center}, width: {width}, height: {height}, angle: {angle}") 
                     if width < 0 or height < 0:
                         raise ValueError(f"Invalid ellipse axes: a={width}, b={height}")

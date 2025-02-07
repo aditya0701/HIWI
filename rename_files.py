@@ -54,5 +54,5 @@ def rename_files_in_folder_2(folder_path):
                 print(f'Renamed: {old_file_path} to {new_file_path}')
 
 # Specify your folder path here
-folder_name = r'D:\Exercises\HIWI\EllipDet-master\Occluded\Occluded\O4\gt'
+folder_name = r'D:\Exercises\HIWI\EllipDet-master\Industrial\gt'
 rename_files_in_folder_2(folder_name)
